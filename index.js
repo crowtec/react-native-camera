@@ -58,6 +58,8 @@ function convertNativeProps(props) {
   }
 
 
+  console.log(newProps)
+
   return newProps;
 }
 
@@ -208,7 +210,6 @@ export default class Camera extends Component {
     const { onPreviewFrameRead } = props || this.props
     this._removeOnPreviewFrameReadListener()
     if (onPreviewFrameRead) {
-      console.log("added listener");
       this.cameraPreviewFrameReadListener = Platform.select({
         ios: NativeAppEventEmitter.addListener('PreviewFrameReadIOS', this._onPreviewFrameRead),
         android: DeviceEventEmitter.addListener('PreviewFrameReadAndroid',  this._onPreviewFrameRead)
@@ -236,6 +237,7 @@ export default class Camera extends Component {
   };
 
   _onPreviewFrameRead = (data) => {
+    console.log("onpreviewframeread called!")
     if (this.props.onPreviewFrameRead) {
       this.props.onPreviewFrameRead(data)
     }
