@@ -106,6 +106,7 @@ export default class Camera extends Component {
     onPreviewFrameRead: PropTypes.func,
     onBarCodeRead: PropTypes.func,
     barcodeScannerEnabled: PropTypes.bool,
+    previewModeEnabled: PropTypes.bool,
     onFocusChanged: PropTypes.func,
     onZoomChanged: PropTypes.func,
     mirrorImage: PropTypes.bool,
