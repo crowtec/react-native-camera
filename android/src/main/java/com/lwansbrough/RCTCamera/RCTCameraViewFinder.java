@@ -277,10 +277,15 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         }
 
         if (this.getCaptureMode() == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_PREVIEW){
+            Log.i("Preview", "Start Async Task");
             RCTCameraViewFinder.previewModeTaskLock = true;
             new PreviewModeReaderAsyncTask(camera, data).execute();
 
         }
+
+
+          Log.i("Preview", this.getCaptureMode());
+          Log.i("Preview", "Preview Frame");
     }
 
     private class PreviewModeReaderAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -328,6 +333,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 WritableMap event = Arguments.createMap();
                 event.putString("data", result.toString());
                 // event.putString("type", result.getBarcodeFormat().toString());
+                Log.i("Preview", "Sending event to js");
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
 
             } catch (Throwable t) {
