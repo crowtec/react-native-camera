@@ -207,9 +207,6 @@ public class RCTCamera {
         camera.setParameters(parameters);
     }
 
-    public int getCaptureMode(){
-      return this._captureMode;
-    }
 
     public void setCaptureQuality(int cameraType, String captureQuality) {
         Camera camera = this.acquireCameraInstance(cameraType);
