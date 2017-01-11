@@ -40,6 +40,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
     // concurrency lock for barcode scanner to avoid flooding the runtime
     public static volatile boolean barcodeScannerTaskLock = false;
+    // concurrency lock for preview mode to avoid flooding the runtime
+    public static volatile boolean previewModeTaskLock = false;
 
     // reader instance for the barcode scanner
     private final MultiFormatReader _multiFormatReader = new MultiFormatReader();
