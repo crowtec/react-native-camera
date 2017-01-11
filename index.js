@@ -53,6 +53,10 @@ function convertNativeProps(props) {
 
   newProps.barcodeScannerEnabled = typeof props.onBarCodeRead === 'function'
 
+  if (typeof props.onPreviewFrameRead === 'function') {
+    newProps.onPreviewFrameRead = props.onPreviewFrameRead;
+  }
+
 
   return newProps;
 }
@@ -204,6 +208,7 @@ export default class Camera extends Component {
     const { onPreviewFrameRead } = props || this.props
     this._removeOnPreviewFrameReadListener()
     if (onPreviewFrameRead) {
+      console.log("added listener");
       this.cameraPreviewFrameReadListener = Platform.select({
         ios: NativeAppEventEmitter.addListener('PreviewFrameReadIOS', this._onPreviewFrameRead),
         android: DeviceEventEmitter.addListener('PreviewFrameReadAndroid',  this._onPreviewFrameRead)
