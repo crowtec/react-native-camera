@@ -123,6 +123,10 @@ public class RCTCameraView extends ViewGroup {
         RCTCamera.getInstance().setBarcodeScannerEnabled(barcodeScannerEnabled);
     }
 
+    public void setPreviewModeEnabled(boolean previewModeEnabled) {
+        RCTCamera.getInstance().setPreviewModeEnabled(previewModeEnabled);
+    }
+
     public void setBarCodeTypes(List<String> types) {
         RCTCamera.getInstance().setBarCodeTypes(types);
     }

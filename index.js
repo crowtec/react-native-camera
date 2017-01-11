@@ -53,12 +53,13 @@ function convertNativeProps(props) {
 
   newProps.barcodeScannerEnabled = typeof props.onBarCodeRead === 'function'
 
+
   if (typeof props.onPreviewFrameRead === 'function') {
     newProps.onPreviewFrameRead = props.onPreviewFrameRead;
   }
 
+  newProps.previewModeEnabled = typeof props.onPreviewFrameRead === 'function'
 
-  console.log(newProps)
 
   return newProps;
 }

@@ -75,6 +75,11 @@ public class RCTCameraViewManager extends ViewGroupManager<RCTCameraView> {
         view.setBarcodeScannerEnabled(barcodeScannerEnabled);
     }
 
+    @ReactProp(name = "previewModeEnabled")
+    public void setPreviewModeEnabled(RCTCameraView view, boolean previewModeEnabled) {
+        view.setPreviewModeEnabled(previewModeEnabled);
+    }
+
     @ReactProp(name = "barCodeTypes")
     public void setBarCodeTypes(RCTCameraView view, ReadableArray barCodeTypes) {
         if (barCodeTypes == null) {

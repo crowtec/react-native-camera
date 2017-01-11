@@ -22,6 +22,7 @@ public class RCTCamera {
     private static final Resolution RESOLUTION_720P = new Resolution(1280, 720);
     private static final Resolution RESOLUTION_1080P = new Resolution(1920, 1080);
     private boolean _barcodeScannerEnabled = false;
+    private boolean _previewModeEnabled = false;
     private List<String> _barCodeTypes = null;
     private int _orientation = -1;
     private int _actualDeviceOrientation = 0;
@@ -164,8 +165,16 @@ public class RCTCamera {
       return _barcodeScannerEnabled;
     }
 
+    public boolean isPreviewModeEnabled() {
+      return _previewModeEnabled;
+    }
+
     public void setBarcodeScannerEnabled(boolean barcodeScannerEnabled) {
         _barcodeScannerEnabled = barcodeScannerEnabled;
+    }
+
+    public void setPreviewModeEnabled(boolean previewModeEnabled) {
+        _previewModeEnabled = previewModeEnabled;
     }
 
     public List<String> getBarCodeTypes() {
