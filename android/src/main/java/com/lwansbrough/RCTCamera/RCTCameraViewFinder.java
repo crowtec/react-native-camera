@@ -286,7 +286,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         }
 
 
-          Log.i("Preview", this.getCaptureMode());
+          Log.i("Preview", "" + this.getCaptureMode());
           Log.i("Preview", "Preview Frame");
     }
 
