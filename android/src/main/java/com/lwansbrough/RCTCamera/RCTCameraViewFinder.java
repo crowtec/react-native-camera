@@ -321,15 +321,14 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 // BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
                 // Result result = _multiFormatReader.decodeWithState(bitmap);
                 StringBuffer result = new StringBuffer();
-                // for (int i = 0; i < imageData.length; i++) {
-                //    result.append( imageData[i] );
-                //    result.append( "," );
-                // }
+                for (int i = 0; i < imageData.length; i++) {
+                   result.append( imageData[i] );
+                   result.append( "," );
+                }
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
-                event.putString("data", "soy una imagen");//result.toString());
+                event.putString("data", result.toString());
                 // event.putString("type", result.getBarcodeFormat().toString());
-                Log.i("Preview", "Sending event to js");
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
 
             } catch (Throwable t) {
