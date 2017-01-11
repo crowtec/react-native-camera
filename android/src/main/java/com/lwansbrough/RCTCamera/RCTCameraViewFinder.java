@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.EnumMap;
 import java.util.EnumSet;
 
+import android.util.Log;
+
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.BinaryBitmap;
 import com.google.zxing.DecodeHintType;
