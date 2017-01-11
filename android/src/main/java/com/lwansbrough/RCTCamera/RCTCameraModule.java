@@ -51,6 +51,7 @@ public class RCTCameraModule extends ReactContextBaseJavaModule
     public static final int RCT_CAMERA_ASPECT_STRETCH = 2;
     public static final int RCT_CAMERA_CAPTURE_MODE_STILL = 0;
     public static final int RCT_CAMERA_CAPTURE_MODE_VIDEO = 1;
+    public static final int RCT_CAMERA_CAPTURE_MODE_PREVIEW = 2;
     public static final int RCT_CAMERA_CAPTURE_TARGET_MEMORY = 0;
     public static final int RCT_CAMERA_CAPTURE_TARGET_DISK = 1;
     public static final int RCT_CAMERA_CAPTURE_TARGET_CAMERA_ROLL = 2;
@@ -205,6 +206,7 @@ public class RCTCameraModule extends ReactContextBaseJavaModule
                     {
                         put("still", RCT_CAMERA_CAPTURE_MODE_STILL);
                         put("video", RCT_CAMERA_CAPTURE_MODE_VIDEO);
+                        put("preview", RCT_CAMERA_CAPTURE_MODE_PREVIEW);
                     }
                 });
             }

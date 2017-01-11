@@ -16,6 +16,7 @@ import com.facebook.react.bridge.ReactContext;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.modules.core.DeviceEventManagerModule;
 
+import java.lang.StringBuffer;
 import java.util.List;
 import java.util.EnumMap;
 import java.util.EnumSet;
@@ -96,6 +97,10 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         this._captureMode = captureMode;
     }
 
+    public int getCaptureMode(){
+      return this._captureMode;
+    }
+
     public void setCaptureQuality(String captureQuality) {
         RCTCamera.getInstance().setCaptureQuality(_cameraType, captureQuality);
     }
@@ -138,6 +143,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                     supportedSizes = parameters.getSupportedPictureSizes();
                 } else if (_captureMode == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_VIDEO) {
                     supportedSizes = RCTCamera.getInstance().getSupportedVideoSizes(_camera);
+                } else if (_captureMode == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_PREVIEW){
+                    supportedSizes = parameters.getSupportedPictureSizes();
                 } else {
                     throw new RuntimeException("Unsupported capture mode:" + _captureMode);
                 }
@@ -257,12 +264,77 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
      *  - the barcode scanner is enabled (has a onBarCodeRead function)
      *  - one isn't already running
      *
+     * Capture a preview frame if captureMode is in preview mode
+     *
      * See {Camera.PreviewCallback}
      */
     public void onPreviewFrame(byte[] data, Camera camera) {
         if (RCTCamera.getInstance().isBarcodeScannerEnabled() && !RCTCameraViewFinder.barcodeScannerTaskLock) {
             RCTCameraViewFinder.barcodeScannerTaskLock = true;
             new ReaderAsyncTask(camera, data).execute();
+        }
+
+        if (RCTCamera.getInstance().getCaptureMode == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_PREVIEW){
+            RCTCameraViewFinder.previewModeTaskLock = true;
+            new ReaderAsyncTask(camera, data).execute();
+
+        }
+    }
+
+    private class PreviewModeReaderAsyncTask extends AsyncTask<Void, Void, Void> {
+        private byte[] imageData;
+        private final Camera camera;
+
+        ReaderAsyncTask(Camera camera, byte[] imageData) {
+            this.camera = camera;
+            this.imageData = imageData;
+        }
+
+        @Override
+        protected Void doInBackground(Void... ignored) {
+            if (isCancelled()) {
+                return null;
+            }
+
+            Camera.Size size = camera.getParameters().getPreviewSize();
+
+            int width = size.width;
+            int height = size.height;
+
+            // rotate for zxing if orientation is portrait
+            if (RCTCamera.getInstance().getActualDeviceOrientation() == 0) {
+              byte[] rotated = new byte[imageData.length];
+              for (int y = 0; y < height; y++) {
+                for (int x = 0; x < width; x++) {
+                  rotated[x * height + height - y - 1] = imageData[x + y * width];
+                }
+              }
+              width = size.height;
+              height = size.width;
+              imageData = rotated;
+            }
+
+            try {
+                // BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
+                // Result result = _multiFormatReader.decodeWithState(bitmap);
+                StringBuffer result = new StringBuffer();
+                for (int i = 0; i < imageData.length; i++) {
+                   result.append( imageData[i] );
+                   result.append( "," );
+                }
+                ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
+                WritableMap event = Arguments.createMap();
+                event.putString("data", result.toString());
+                // event.putString("type", result.getBarcodeFormat().toString());
+                reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
+
+            } catch (Throwable t) {
+                // meh
+            } finally {
+                _multiFormatReader.reset();
+                RCTCameraViewFinder.previewModeTaskLock = false;
+                return null;
+            }
         }
     }
 
