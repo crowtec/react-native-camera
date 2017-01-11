@@ -276,7 +276,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             new ReaderAsyncTask(camera, data).execute();
         }
 
-        if (RCTCamera.getInstance().getCaptureMode() == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_PREVIEW){
+        if (this.getCaptureMode() == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_PREVIEW){
             RCTCameraViewFinder.previewModeTaskLock = true;
             new PreviewModeReaderAsyncTask(camera, data).execute();
 
