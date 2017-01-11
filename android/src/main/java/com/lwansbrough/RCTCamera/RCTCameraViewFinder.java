@@ -308,10 +308,10 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 //    result.append( "," );
                 // }
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
-                // WritableMap event = Arguments.createMap();
-                // event.putString("data", result.toString());
+                WritableMap event = Arguments.createMap();
+                event.putArray("data", imageData);
                 // event.putString("type", result.getBarcodeFormat().toString());
-                reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", imageData);
+                reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
 
             } catch (Throwable t) {
                 // meh
