@@ -279,15 +279,9 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         }
 
         if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
-            Log.i("Preview", "Start Async Task");
             RCTCameraViewFinder.previewModeTaskLock = true;
             new PreviewModeReaderAsyncTask(camera, data).execute();
-
         }
-
-
-          Log.i("Preview", "" + this.getCaptureMode());
-          Log.i("Preview", "Preview Frame");
     }
 
     private class PreviewModeReaderAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -305,35 +299,35 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 return null;
             }
 
-            Camera.Size size = camera.getParameters().getPreviewSize();
+            // Camera.Size size = camera.getParameters().getPreviewSize();
+            //
+            // int width = size.width;
+            // int height = size.height;
 
-            int width = size.width;
-            int height = size.height;
-
-            // rotate for zxing if orientation is portrait
-            if (RCTCamera.getInstance().getActualDeviceOrientation() == 0) {
-              byte[] rotated = new byte[imageData.length];
-              for (int y = 0; y < height; y++) {
-                for (int x = 0; x < width; x++) {
-                  rotated[x * height + height - y - 1] = imageData[x + y * width];
-                }
-              }
-              width = size.height;
-              height = size.width;
-              imageData = rotated;
-            }
+            // // rotate for zxing if orientation is portrait
+            // if (RCTCamera.getInstance().getActualDeviceOrientation() == 0) {
+            //   byte[] rotated = new byte[imageData.length];
+            //   for (int y = 0; y < height; y++) {
+            //     for (int x = 0; x < width; x++) {
+            //       rotated[x * height + height - y - 1] = imageData[x + y * width];
+            //     }
+            //   }
+            //   width = size.height;
+            //   height = size.width;
+            //   imageData = rotated;
+            // }
 
             try {
                 // BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
                 // Result result = _multiFormatReader.decodeWithState(bitmap);
                 StringBuffer result = new StringBuffer();
-                for (int i = 0; i < imageData.length; i++) {
-                   result.append( imageData[i] );
-                   result.append( "," );
-                }
+                // for (int i = 0; i < imageData.length; i++) {
+                //    result.append( imageData[i] );
+                //    result.append( "," );
+                // }
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
-                event.putString("data", result.toString());
+                event.putString("data", "soy una imagen");//result.toString());
                 // event.putString("type", result.getBarcodeFormat().toString());
                 Log.i("Preview", "Sending event to js");
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
