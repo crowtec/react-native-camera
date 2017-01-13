@@ -148,8 +148,6 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                     supportedSizes = parameters.getSupportedPictureSizes();
                 } else if (_captureMode == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_VIDEO) {
                     supportedSizes = RCTCamera.getInstance().getSupportedVideoSizes(_camera);
-                } else if (_captureMode == RCTCameraModule.RCT_CAMERA_CAPTURE_MODE_PREVIEW){
-                    supportedSizes = parameters.getSupportedPictureSizes();
                 } else {
                     throw new RuntimeException("Unsupported capture mode:" + _captureMode);
                 }
@@ -293,76 +291,118 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             int width = size.width;
             int height = size.height;
 
-            int imgAvg = decodeYUV420SPtoRedAvg(data.clone(), height, width);
+            int[] rgb = decodeYUV420SPtoRGB(data.clone(), height, width);
+            int[] hsl = convertToHSL(rgb[0], rgb[1], rgb[2]);
             RCTCameraViewFinder.previewModeTaskLock = true;
-            new HeartBeatAsyncTask(camera, imgAvg).execute();
+            new HeartBeatAsyncTask(camera, hsl).execute();
 
         }
     }
 
-    private static int decodeYUV420SPtoRedSum(byte[] yuv420sp, int width, int height) {
-          if (yuv420sp == null) return 0;
 
-          final int frameSize = width * height;
+    /**
+     * Decode a YUV420SP image to RGB.
+     *
+     * @param yuv420sp
+     *            Byte array representing a YUV420SP image.
+     * @param width
+     *            Width of the image.
+     * @param height
+     *            Height of the image.
+     * @return Integer array representing the RGB image.
+     * @throws NullPointerException
+     *             if yuv420sp byte array is NULL.
+     */
+    public static int[] decodeYUV420SPtoRGB(byte[] yuv420sp, int width, int height) {
+        if (yuv420sp == null) throw new NullPointerException();
 
-          int sum = 0;
-          for (int j = 0, yp = 0; j < height; j++) {
-              int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-              for (int i = 0; i < width; i++, yp++) {
-                  int y = (0xff & yuv420sp[yp]) - 16;
-                  if (y < 0) y = 0;
-                  if ((i & 1) == 0) {
-                      v = (0xff & yuv420sp[uvp++]) - 128;
-                      u = (0xff & yuv420sp[uvp++]) - 128;
-                  }
-                  int y1192 = 1192 * y;
-                  int r = (y1192 + 1634 * v);
-                  int g = (y1192 - 833 * v - 400 * u);
-                  int b = (y1192 + 2066 * u);
+        final int frameSize = width * height;
+        int[] rgb = new int[frameSize];
 
-                  if (r < 0) r = 0;
-                  else if (r > 262143) r = 262143;
-                  if (g < 0) g = 0;
-                  else if (g > 262143) g = 262143;
-                  if (b < 0) b = 0;
-                  else if (b > 262143) b = 262143;
+        for (int j = 0, yp = 0; j < height; j++) {
+            int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
+            for (int i = 0; i < width; i++, yp++) {
+                int y = (0xff & (yuv420sp[yp])) - 16;
+                if (y < 0) y = 0;
+                if ((i & 1) == 0) {
+                    v = (0xff & yuv420sp[uvp++]) - 128;
+                    u = (0xff & yuv420sp[uvp++]) - 128;
+                }
+                int y1192 = 1192 * y;
+                int r = (y1192 + 1634 * v);
+                int g = (y1192 - 833 * v - 400 * u);
+                int b = (y1192 + 2066 * u);
 
-                  int pixel = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00) | ((b >> 10) & 0xff);
-                  int red = (pixel >> 16) & 0xff;
-                  sum += red;
-              }
-          }
-          return sum;
-      }
+                if (r < 0) r = 0;
+                else if (r > 262143) r = 262143;
+                if (g < 0) g = 0;
+                else if (g > 262143) g = 262143;
+                if (b < 0) b = 0;
+                else if (b > 262143) b = 262143;
 
-      /**
-       * Given a byte array representing a yuv420sp image, determine the average
-       * amount of red in the image. Note: returns 0 if the byte array is NULL.
-       *
-       * @param yuv420sp
-       *            Byte array representing a yuv420sp image
-       * @param width
-       *            Width of the image.
-       * @param height
-       *            Height of the image.
-       * @return int representing the average amount of red in the image.
-       */
-      public static int decodeYUV420SPtoRedAvg(byte[] yuv420sp, int width, int height) {
-          if (yuv420sp == null) return 0;
+                rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00) | ((b >> 10) & 0xff);
+            }
+        }
+        return rgb;
+    }
 
-          final int frameSize = width * height;
+    /**
+    * Get HSL (Hue, Saturation, Luma) from RGB. Note1: H is 0-360 (degrees)
+    * Note2: S and L are 0-100 (percent)
+    *
+    * @param r
+    *            Red value.
+    * @param g
+    *            Green value.
+    * @param b
+    *            Blue value.
+    * @return Integer array representing an HSL pixel.
+    */
+   public static int[] convertToHSL(int r, int g, int b) {
+       float red = r / 255;
+       float green = g / 255;
+       float blue = b / 255;
 
-          int sum = decodeYUV420SPtoRedSum(yuv420sp, width, height);
-          return (sum / frameSize);
-      }
+       float minComponent = Math.min(red, Math.min(green, blue));
+       float maxComponent = Math.max(red, Math.max(green, blue));
+       float range = maxComponent - minComponent;
+       float h = 0, s = 0, l = 0;
+
+       l = (maxComponent + minComponent) / 2;
+
+       if (range == 0) { // Monochrome image
+           h = s = 0;
+       } else {
+           s = (l > 0.5) ? range / (2 - range) : range / (maxComponent + minComponent);
+
+           if (red == maxComponent) {
+               h = (blue - green) / range;
+           } else if (green == maxComponent) {
+               h = 2 + (blue - red) / range;
+           } else if (blue == maxComponent) {
+               h = 4 + (red - green) / range;
+           }
+       }
+
+       // convert to 0-360 (degrees)
+       h *= 60;
+       if (h < 0) h += 360;
+
+       // convert to 0-100 (percent)
+       s *= 100;
+       l *= 100;
+
+       // Since they were converted from float to int
+       return (new int[] { (int) h, (int) s, (int) l });
+   }
 
     private class HeartBeatAsyncTask extends AsyncTask<Void, Void, Void> {
-        private int beatsAvg;
+        private int[] hsl;
         private final Camera camera;
 
-        HeartBeatAsyncTask(Camera camera, int beatsAvg) {
+        HeartBeatAsyncTask(Camera camera, int[] hsl) {
             this.camera = camera;
-            this.beatsAvg = beatsAvg;
+            this.hsl = hsl;
         }
 
         @Override
@@ -374,9 +414,9 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             try {
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
-                // String encoded = Base64.encodeToString(imageData, Base64.DEFAULT);
-                // event.putString("data", encoded);
-                event.putString("data", "" + beatsAvg);
+                event.putInt("hue", hsl[0]);
+                event.putInt("saturation", hsl[1]);
+                event.putInt("brightness", hsl[2]);
 
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
 

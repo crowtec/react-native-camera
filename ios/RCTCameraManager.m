@@ -234,7 +234,7 @@ RCT_CUSTOM_VIEW_PROPERTY(flashMode, NSInteger, RCTCamera) {
 - (void)setFlashMode {
     AVCaptureDevice *device = [self.videoCaptureDeviceInput device];
     NSError *error = nil;
-    
+
     if (![device hasFlash]) return;
     if (![device lockForConfiguration:&error]) {
         NSLog(@"%@", error);
@@ -864,33 +864,89 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   }
 }
 
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputMetadataObjects:(NSArray *)metadataObjects fromConnection:(AVCaptureConnection *)connection {
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBufferfromConnection:(AVCaptureConnection *)connection {
 
-  for (AVMetadataMachineReadableCodeObject *metadata in metadataObjects) {
-    for (id barcodeType in self.barCodeTypes) {
-      if ([metadata.type isEqualToString:barcodeType]) {
-        // Transform the meta-data coordinates to screen coords
-        AVMetadataMachineReadableCodeObject *transformed = (AVMetadataMachineReadableCodeObject *)[_previewLayer transformedMetadataObjectForMetadataObject:metadata];
+  // for (AVMetadataMachineReadableCodeObject *metadata in metadataObjects) {
+  //   for (id barcodeType in self.barCodeTypes) {
+  //     if ([metadata.type isEqualToString:barcodeType]) {
+  //       // Transform the meta-data coordinates to screen coords
+  //       AVMetadataMachineReadableCodeObject *transformed = (AVMetadataMachineReadableCodeObject *)[_previewLayer transformedMetadataObjectForMetadataObject:metadata];
+  //
+  //       NSDictionary *event = @{
+  //         @"type": metadata.type,
+  //         @"data": metadata.stringValue,
+  //         @"bounds": @{
+  //           @"origin": @{
+  //             @"x": [NSString stringWithFormat:@"%f", transformed.bounds.origin.x],
+  //             @"y": [NSString stringWithFormat:@"%f", transformed.bounds.origin.y]
+  //           },
+  //           @"size": @{
+  //             @"height": [NSString stringWithFormat:@"%f", transformed.bounds.size.height],
+  //             @"width": [NSString stringWithFormat:@"%f", transformed.bounds.size.width],
+  //           }
+  //         }
+  //       };
+  //
+  //      [self.bridge.eventDispatcher sendAppEventWithName:@"CameraBarCodeRead" body:event];
+  //     }
+  //   }
+  // }
 
-        NSDictionary *event = @{
-          @"type": metadata.type,
-          @"data": metadata.stringValue,
-          @"bounds": @{
-            @"origin": @{
-              @"x": [NSString stringWithFormat:@"%f", transformed.bounds.origin.x],
-              @"y": [NSString stringWithFormat:@"%f", transformed.bounds.origin.y]
-            },
-            @"size": @{
-              @"height": [NSString stringWithFormat:@"%f", transformed.bounds.size.height],
-              @"width": [NSString stringWithFormat:@"%f", transformed.bounds.size.width],
-            }
-          }
-        };
+  CVImageBufferRef cvimgRef = CMSampleBufferGetImageBuffer(sampleBuffer);
 
-        [self.bridge.eventDispatcher sendAppEventWithName:@"CameraBarCodeRead" body:event];
-      }
-    }
+  // Lock the image buffer
+  CVPixelBufferLockBaseAddress(cvimgRef,0);
+
+  // access the data
+  NSInteger width = CVPixelBufferGetWidth(cvimgRef);
+  NSInteger height = CVPixelBufferGetHeight(cvimgRef);
+
+  // get the raw image bytes
+  uint8_t *buf=(uint8_t *) CVPixelBufferGetBaseAddress(cvimgRef);
+  size_t bprow=CVPixelBufferGetBytesPerRow(cvimgRef);
+  float r=0,g=0,b=0;
+
+  long widthScaleFactor = width/192;
+  long heightScaleFactor = height/144;
+
+  // Get the average rgb values for the entire image.
+  for(int y=0; y < height; y+=heightScaleFactor) {
+     for(int x=0; x < width*4; x+=(4*widthScaleFactor)) {
+         b+=buf[x];
+         g+=buf[x+1];
+         r+=buf[x+2];
+         // a+=buf[x+3];
+     }
+     buf+=bprow;
   }
+  r/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
+  g/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
+  b/=255*(float) (width*height/widthScaleFactor/heightScaleFactor);
+
+  // The hue value is the most expressive when looking for heart beats.
+  // Here we convert our rgb values in hsv and continue with the h value.
+  UIColor *color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
+  CGFloat hue, sat, bright;
+  [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
+
+  NSDictionary *event = @{
+    // @"type": metadata.type,
+    @"hue": hue,
+    @"saturation": saturation,
+    @"brightness": brightness,
+    // @"bounds": @{
+    //   @"origin": @{
+    //     @"x": [NSString stringWithFormat:@"%f", transformed.bounds.origin.x],
+    //     @"y": [NSString stringWithFormat:@"%f", transformed.bounds.origin.y]
+    //   },
+    //   @"size": @{
+    //     @"height": [NSString stringWithFormat:@"%f", transformed.bounds.size.height],
+    //     @"width": [NSString stringWithFormat:@"%f", transformed.bounds.size.width],
+    //   }
+    // }
+  };
+
+  [self.bridge.eventDispatcher sendAppEventWithName:@"PreviewFrameReadIOS" body:event];
 }
 
 
