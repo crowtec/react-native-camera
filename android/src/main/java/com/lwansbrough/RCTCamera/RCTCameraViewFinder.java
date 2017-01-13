@@ -21,6 +21,7 @@ import java.lang.StringBuffer;
 import java.util.List;
 import java.util.EnumMap;
 import java.util.EnumSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import android.util.Log;
 
@@ -49,11 +50,34 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     // reader instance for the barcode scanner
     private final MultiFormatReader _multiFormatReader = new MultiFormatReader();
 
+    private static final AtomicBoolean processing = new AtomicBoolean(false);
+    private static int averageIndex = 0;
+    private static final int averageArraySize = 4;
+    private static final int[] averageArray = new int[averageArraySize];
+
+    public static enum TYPE {
+        GREEN, RED
+    };
+
+    private static TYPE currentType = TYPE.GREEN;
+
+    public static TYPE getCurrent() {
+        return currentType;
+    }
+
+    private static int beatsIndex = 0;
+    private static final int beatsArraySize = 3;
+    private static final int[] beatsArray = new int[beatsArraySize];
+    private static double beats = 0;
+    private static long startTime = 0;
+
+
     public RCTCameraViewFinder(Context context, int type) {
         super(context);
         this.setSurfaceTextureListener(this);
         this._cameraType = type;
         this.initBarcodeReader(RCTCamera.getInstance().getBarCodeTypes());
+        startTime = System.currentTimeMillis();
     }
 
     @Override
@@ -279,9 +303,128 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             new ReaderAsyncTask(camera, data).execute();
         }
 
+        // if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
+        //     RCTCameraViewFinder.previewModeTaskLock = true;
+        //     new PreviewModeReaderAsyncTask(camera, data).execute();
+        // }
         if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
+
+                      if (data == null) throw new NullPointerException();
+                      Camera.Size size = cam.getParameters().getPreviewSize();
+                      if (size == null) throw new NullPointerException();
+
+                      if (!processing.compareAndSet(false, true)) return;
+
+                      int width = size.width;
+                      int height = size.height;
+
+                      int imgAvg = ImageProcessing.decodeYUV420SPtoRedAvg(data.clone(), height, width);
+                      // Log.i(TAG, "imgAvg="+imgAvg);
+                      if (imgAvg == 0 || imgAvg == 255) {
+                          processing.set(false);
+                          return;
+                      }
+
+                      int averageArrayAvg = 0;
+                      int averageArrayCnt = 0;
+                      for (int i = 0; i < averageArray.length; i++) {
+                          if (averageArray[i] > 0) {
+                              averageArrayAvg += averageArray[i];
+                              averageArrayCnt++;
+                          }
+                      }
+
+                      int rollingAverage = (averageArrayCnt > 0) ? (averageArrayAvg / averageArrayCnt) : 0;
+                      TYPE newType = currentType;
+                      if (imgAvg < rollingAverage) {
+                          newType = TYPE.RED;
+                          if (newType != currentType) {
+                              beats++;
+                              // Log.d(TAG, "BEAT!! beats="+beats);
+                          }
+                      } else if (imgAvg > rollingAverage) {
+                          newType = TYPE.GREEN;
+                      }
+
+                      if (averageIndex == averageArraySize) averageIndex = 0;
+                      averageArray[averageIndex] = imgAvg;
+                      averageIndex++;
+
+                      // Transitioned from one state to another to the same
+                      if (newType != currentType) {
+                          currentType = newType;
+                      }
+
+                      long endTime = System.currentTimeMillis();
+                      double totalTimeInSecs = (endTime - startTime) / 1000d;
+                      if (totalTimeInSecs >= 10) {
+                          double bps = (beats / totalTimeInSecs);
+                          int dpm = (int) (bps * 60d);
+                          if (dpm < 30 || dpm > 180) {
+                              startTime = System.currentTimeMillis();
+                              beats = 0;
+                              processing.set(false);
+                              return;
+                          }
+
+                          // Log.d(TAG,
+                          // "totalTimeInSecs="+totalTimeInSecs+" beats="+beats);
+
+                          if (beatsIndex == beatsArraySize) beatsIndex = 0;
+                          beatsArray[beatsIndex] = dpm;
+                          beatsIndex++;
+
+                          int beatsArrayAvg = 0;
+                          int beatsArrayCnt = 0;
+                          for (int i = 0; i < beatsArray.length; i++) {
+                              if (beatsArray[i] > 0) {
+                                  beatsArrayAvg += beatsArray[i];
+                                  beatsArrayCnt++;
+                              }
+                          }
+                          int beatsAvg = (beatsArrayAvg / beatsArrayCnt);
+                          startTime = System.currentTimeMillis();
+                          beats = 0;
+                      }
+                      processing.set(false);
+
+
             RCTCameraViewFinder.previewModeTaskLock = true;
-            new PreviewModeReaderAsyncTask(camera, data).execute();
+            new HeartBeatAsyncTask(camera, beatsAvg).execute();
+        }
+    }
+
+    private class HeartBeatAsyncTask extends AsyncTask<Void, Void, Void> {
+        private int beatsAvg;
+        private final Camera camera;
+
+        HeartBeatAsyncTask(Camera camera, int beatsAvg) {
+            this.camera = camera;
+            this.beatsAvg = beatsAvg;
+        }
+
+        @Override
+        protected Void doInBackground(Void... ignored) {
+            if (isCancelled()) {
+                return null;
+            }
+
+            try {
+                ReactContext reactContext = RCTCameraModule.getReactContextSingleton(0);
+                WritableMap event = Arguments.createMap();
+                // String encoded = Base64.encodeToString(imageData, Base64.DEFAULT);
+                // event.putString("data", encoded);
+                event.putInt("data", beatsAvg);
+
+                reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
+
+            } catch (Throwable t) {
+                // meh
+            } finally {
+                _multiFormatReader.reset();
+                RCTCameraViewFinder.previewModeTaskLock = false;
+                return null;
+            }
         }
     }
 
@@ -301,13 +444,6 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             }
 
             try {
-                // BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-                // Result result = _multiFormatReader.decodeWithState(bitmap);
-                // StringBuffer result = new StringBuffer();
-                // for (int i = 0; i < imageData.length; i++) {
-                //    result.append( imageData[i] );
-                //    result.append( "," );
-                // }
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
                 String encoded = Base64.encodeToString(imageData, Base64.DEFAULT);
