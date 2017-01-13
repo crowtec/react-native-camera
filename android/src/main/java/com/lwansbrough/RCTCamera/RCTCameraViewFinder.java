@@ -312,7 +312,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             RCTCameraViewFinder.previewModeTaskLock = true;
 
             if (data == null) throw new NullPointerException();
-            Camera.Size size = cam.getParameters().getPreviewSize();
+            Camera.Size size = camera.getParameters().getPreviewSize();
             if (size == null) throw new NullPointerException();
 
             if (!processing.compareAndSet(false, true)) return;
@@ -468,7 +468,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             }
 
             try {
-                ReactContext reactContext = RCTCameraModule.getReactContextSingleton(0);
+                ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
                 // String encoded = Base64.encodeToString(imageData, Base64.DEFAULT);
                 // event.putString("data", encoded);
