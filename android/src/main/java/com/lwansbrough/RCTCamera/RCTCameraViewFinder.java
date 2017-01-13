@@ -309,88 +309,90 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         // }
         if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
 
-                      if (data == null) throw new NullPointerException();
-                      Camera.Size size = cam.getParameters().getPreviewSize();
-                      if (size == null) throw new NullPointerException();
-
-                      if (!processing.compareAndSet(false, true)) return;
-
-                      int width = size.width;
-                      int height = size.height;
-
-                      int imgAvg = decodeYUV420SPtoRedAvg(data.clone(), height, width);
-                      // Log.i(TAG, "imgAvg="+imgAvg);
-                      if (imgAvg == 0 || imgAvg == 255) {
-                          processing.set(false);
-                          return;
-                      }
-
-                      int averageArrayAvg = 0;
-                      int averageArrayCnt = 0;
-                      for (int i = 0; i < averageArray.length; i++) {
-                          if (averageArray[i] > 0) {
-                              averageArrayAvg += averageArray[i];
-                              averageArrayCnt++;
-                          }
-                      }
-
-                      int rollingAverage = (averageArrayCnt > 0) ? (averageArrayAvg / averageArrayCnt) : 0;
-                      TYPE newType = currentType;
-                      if (imgAvg < rollingAverage) {
-                          newType = TYPE.RED;
-                          if (newType != currentType) {
-                              beats++;
-                              // Log.d(TAG, "BEAT!! beats="+beats);
-                          }
-                      } else if (imgAvg > rollingAverage) {
-                          newType = TYPE.GREEN;
-                      }
-
-                      if (averageIndex == averageArraySize) averageIndex = 0;
-                      averageArray[averageIndex] = imgAvg;
-                      averageIndex++;
-
-                      // Transitioned from one state to another to the same
-                      if (newType != currentType) {
-                          currentType = newType;
-                      }
-
-                      long endTime = System.currentTimeMillis();
-                      double totalTimeInSecs = (endTime - startTime) / 1000d;
-                      if (totalTimeInSecs >= 10) {
-                          double bps = (beats / totalTimeInSecs);
-                          int dpm = (int) (bps * 60d);
-                          if (dpm < 30 || dpm > 180) {
-                              startTime = System.currentTimeMillis();
-                              beats = 0;
-                              processing.set(false);
-                              return;
-                          }
-
-                          // Log.d(TAG,
-                          // "totalTimeInSecs="+totalTimeInSecs+" beats="+beats);
-
-                          if (beatsIndex == beatsArraySize) beatsIndex = 0;
-                          beatsArray[beatsIndex] = dpm;
-                          beatsIndex++;
-
-                          int beatsArrayAvg = 0;
-                          int beatsArrayCnt = 0;
-                          for (int i = 0; i < beatsArray.length; i++) {
-                              if (beatsArray[i] > 0) {
-                                  beatsArrayAvg += beatsArray[i];
-                                  beatsArrayCnt++;
-                              }
-                          }
-                          int beatsAvg = (beatsArrayAvg / beatsArrayCnt);
-                          startTime = System.currentTimeMillis();
-                          beats = 0;
-                      }
-                      processing.set(false);
-
-
             RCTCameraViewFinder.previewModeTaskLock = true;
-            new HeartBeatAsyncTask(camera, beatsAvg).execute();
+
+            if (data == null) throw new NullPointerException();
+            Camera.Size size = cam.getParameters().getPreviewSize();
+            if (size == null) throw new NullPointerException();
+
+            if (!processing.compareAndSet(false, true)) return;
+
+            int width = size.width;
+            int height = size.height;
+
+            int imgAvg = decodeYUV420SPtoRedAvg(data.clone(), height, width);
+            // Log.i(TAG, "imgAvg="+imgAvg);
+            if (imgAvg == 0 || imgAvg == 255) {
+                processing.set(false);
+                return;
+            }
+
+            int averageArrayAvg = 0;
+            int averageArrayCnt = 0;
+            for (int i = 0; i < averageArray.length; i++) {
+                if (averageArray[i] > 0) {
+                    averageArrayAvg += averageArray[i];
+                    averageArrayCnt++;
+                }
+            }
+
+            int rollingAverage = (averageArrayCnt > 0) ? (averageArrayAvg / averageArrayCnt) : 0;
+            TYPE newType = currentType;
+            if (imgAvg < rollingAverage) {
+                newType = TYPE.RED;
+                if (newType != currentType) {
+                    beats++;
+                    // Log.d(TAG, "BEAT!! beats="+beats);
+                }
+            } else if (imgAvg > rollingAverage) {
+                newType = TYPE.GREEN;
+            }
+
+            if (averageIndex == averageArraySize) averageIndex = 0;
+            averageArray[averageIndex] = imgAvg;
+            averageIndex++;
+
+            // Transitioned from one state to another to the same
+            if (newType != currentType) {
+                currentType = newType;
+            }
+
+            long endTime = System.currentTimeMillis();
+            double totalTimeInSecs = (endTime - startTime) / 1000d;
+            if (totalTimeInSecs >= 10) {
+                double bps = (beats / totalTimeInSecs);
+                int dpm = (int) (bps * 60d);
+                if (dpm < 30 || dpm > 180) {
+                    startTime = System.currentTimeMillis();
+                    beats = 0;
+                    processing.set(false);
+                    return;
+                }
+
+                // Log.d(TAG,
+                // "totalTimeInSecs="+totalTimeInSecs+" beats="+beats);
+
+                if (beatsIndex == beatsArraySize) beatsIndex = 0;
+                beatsArray[beatsIndex] = dpm;
+                beatsIndex++;
+
+                int beatsArrayAvg = 0;
+                int beatsArrayCnt = 0;
+                for (int i = 0; i < beatsArray.length; i++) {
+                    if (beatsArray[i] > 0) {
+                        beatsArrayAvg += beatsArray[i];
+                        beatsArrayCnt++;
+                    }
+                }
+                int beatsAvg = (beatsArrayAvg / beatsArrayCnt);
+                startTime = System.currentTimeMillis();
+                beats = 0;
+
+                new HeartBeatAsyncTask(camera, beatsAvg).execute();
+            }
+            processing.set(false);
+
+
         }
     }
 
