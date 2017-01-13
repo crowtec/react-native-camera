@@ -472,7 +472,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 WritableMap event = Arguments.createMap();
                 // String encoded = Base64.encodeToString(imageData, Base64.DEFAULT);
                 // event.putString("data", encoded);
-                event.putInt("data", beatsAvg);
+                event.putString("data", "" + beatsAvg);
 
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
 
