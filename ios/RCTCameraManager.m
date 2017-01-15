@@ -929,11 +929,15 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   CGFloat hue, sat, bright;
   [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
 
+  NSNumber * hu = [NSNumber numberWithFloat:hue];
+  NSNumber * sa = [NSNumber numberWithFloat:sat];
+  NSNumber * br = [NSNumber numberWithFloat:bright];
+
   NSDictionary *event = @{
     // @"type": metadata.type,
-    @"hue": hue,
-    @"saturation": sat,
-    @"brightness": bright,
+    @"hue": hu,
+    @"saturation": sa,
+    @"brightness": br,
     // @"bounds": @{
     //   @"origin": @{
     //     @"x": [NSString stringWithFormat:@"%f", transformed.bounds.origin.x],
