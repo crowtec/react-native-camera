@@ -333,8 +333,12 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         final int frameSize = width * height;
         int[] hsl = new int[frameSize];
 
-        for (int j = 0, yp = 0; j < height; j++) {
-            for (int i = 0; i < width; i++, yp++) {
+        imageHeight = height <= 200 ? height : 200;
+        imageWidth = width <= 200 ? width : 200;
+
+
+        for (int j = 0, yp = 0; j < imageHeight; j++) {
+            for (int i = 0; i < imageWidth; i++, yp++) {
                 int y = (0xff & (yuv420sp[yp])) - 16;
                 if (y < 0) y = 0;
                 hsl[yp] = y;
