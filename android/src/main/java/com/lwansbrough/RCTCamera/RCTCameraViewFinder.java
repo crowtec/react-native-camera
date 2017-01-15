@@ -158,7 +158,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 );
                 parameters.setPictureSize(optimalPictureSize.width, optimalPictureSize.height);
 
-                if(RCTCamera.getInstance().isPreviewModeEnabled()){
+                if(RCTCamera.getInstance().isHeartRateModeEnabled()){
                   parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
 
                   List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
