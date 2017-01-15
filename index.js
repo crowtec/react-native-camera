@@ -239,7 +239,7 @@ export default class Camera extends Component {
   };
 
   _onPreviewFrameRead = (data) => {
-    console.log("onpreviewframeread called!")
+    // console.log("onpreviewframeread called!")
     if (this.props.onPreviewFrameRead) {
       this.props.onPreviewFrameRead(data)
     }
