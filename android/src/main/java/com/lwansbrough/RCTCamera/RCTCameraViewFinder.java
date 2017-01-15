@@ -179,7 +179,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                       }
                   }
 
-                  parameters.setPreviewSize(bestSize.width, bestSize.height);
+                  // parameters.setPreviewSize(bestSize.width, bestSize.height);
                   parameters.setPreviewFpsRange(30000, 30000);
 
                   android.util.Log.i("PreviewSize", "width: " + bestSize.width + " height: " + bestSize.height);
