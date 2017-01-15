@@ -338,42 +338,38 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         rgb[2] = 0;
 
 
-        for (int y = 90; y < 91; y++) {
-          for (int x = 90; x < 91; x++) {
-              int Y = yuv420sp[y*width + x] & 0xff;
 
-              // Get U and V values, stored after Y values, one per 2x2 block
-              // of pixels, interleaved. Prepare them as floats with correct range
-              // ready for calculation later.
-              int xby2 = x/2;
-              int yby2 = y/2;
+        for (int j = 0, yp = 0; j < height; j++) {
+            int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
+            for (int i = 0; i < width; i++, yp++) {
+                int y = (0xff & (yuv420sp[yp])) - 16;
+                if (y < 0) y = 0;
+                if ((i & 1) == 0) {
+                    v = (0xff & yuv420sp[uvp++]) - 128;
+                    u = (0xff & yuv420sp[uvp++]) - 128;
+                }
+                int y1192 = 1192 * y;
+                int r = (y1192 + 1634 * v);
+                int g = (y1192 - 833 * v - 400 * u);
+                int b = (y1192 + 2066 * u);
 
-              // make this V for NV12/420SP
-              float V = (float)(yuv420sp[frameSize + 2*xby2 + yby2*width] & 0xff) - 128.0f;
+                if (r < 0) r = 0;
+                else if (r > 262143) r = 262143;
+                if (g < 0) g = 0;
+                else if (g > 262143) g = 262143;
+                if (b < 0) b = 0;
+                else if (b > 262143) b = 262143;
 
-              // make this U for NV12/420SP
-              float U = (float)(yuv420sp[frameSize + 2*xby2 + 1 + yby2*width] & 0xff) - 128.0f;
 
-              // Do the YUV -> RGB conversion
-              float Yf = 1.164f*((float)Y) - 16.0f;
-              int R = (int)(Yf + 1.596f*V);
-              int G = (int)(Yf - 0.813f*V - 0.391f*U);
-              int B = (int)(Yf            + 2.018f*U);
-
-              // Clip rgb values to 0-255
-              R = R < 0 ? 0 : R > 255 ? 255 : R;
-              G = G < 0 ? 0 : G > 255 ? 255 : G;
-              B = B < 0 ? 0 : B > 255 ? 255 : B;
-
-              rgb[0] += R;
-              rgb[1] += G;
-              rgb[2] += B;
+              rgb[0] += r;
+              rgb[1] += g;
+              rgb[2] += b;
           }
       }
 
-        // rgb[0] = rgb[0] / frameSize;
-        // rgb[1] = rgb[1] / frameSize;
-        // rgb[2] = rgb[2] / frameSize;
+        rgb[0] = rgb[0] / frameSize;
+        rgb[1] = rgb[1] / frameSize;
+        rgb[2] = rgb[2] / frameSize;
         return rgb;
     }
 
@@ -390,9 +386,9 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     * @return Integer array representing an HSL pixel.
     */
    public static int[] convertToHSL(int r, int g, int b) {
-       float red = r / 255;
-       float green = g / 255;
-       float blue = b / 255;
+       float red = r / 262143;
+       float green = g / 262143;
+       float blue = b / 262143;
 
        float minComponent = Math.min(red, Math.min(green, blue));
        float maxComponent = Math.max(red, Math.max(green, blue));
