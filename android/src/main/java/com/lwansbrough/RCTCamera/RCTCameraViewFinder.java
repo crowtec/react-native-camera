@@ -343,115 +343,6 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         return hsl;
     }
 
-
-  //   /**
-  //    * Decode a YUV420SP image to RGB.
-  //    *
-  //    * @param yuv420sp
-  //    *            Byte array representing a YUV420SP image.
-  //    * @param width
-  //    *            Width of the image.
-  //    * @param height
-  //    *            Height of the image.
-  //    * @return Integer array representing the RGB image.
-  //    * @throws NullPointerException
-  //    *             if yuv420sp byte array is NULL.
-  //    */
-  //   public static int[] decodeYUV420SPtoRGB(byte[] yuv420sp, int width, int height) {
-  //       if (yuv420sp == null) throw new NullPointerException();
-   //
-  //       final int frameSize = width * height;
-  //       int[] rgb = new int[3];
-  //       rgb[0] = 0;
-  //       rgb[1] = 0;
-  //       rgb[2] = 0;
-   //
-   //
-   //
-  //       for (int j = 0, yp = 0; j < height; j++) {
-  //           int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-  //           for (int i = 0; i < width; i++, yp++) {
-  //               int y = (0xff & (yuv420sp[yp])) - 16;
-  //               if (y < 0) y = 0;
-  //               if ((i & 1) == 0) {
-  //                   v = (0xff & yuv420sp[uvp++]) - 128;
-  //                   u = (0xff & yuv420sp[uvp++]) - 128;
-  //               }
-  //               int y1192 = 1192 * y;
-  //               int r = (y1192 + 1634 * v);
-  //               int g = (y1192 - 833 * v - 400 * u);
-  //               int b = (y1192 + 2066 * u);
-   //
-  //               if (r < 0) r = 0;
-  //               else if (r > 262143) r = 262143;
-  //               if (g < 0) g = 0;
-  //               else if (g > 262143) g = 262143;
-  //               if (b < 0) b = 0;
-  //               else if (b > 262143) b = 262143;
-   //
-   //
-  //               rgb[0] += r;
-  //               rgb[1] += g;
-  //               rgb[2] += b;
-  //         }
-  //     }
-   //
-  //       rgb[0] = Math.abs(rgb[0] / frameSize);
-  //       rgb[1] = Math.abs(rgb[1] / frameSize);
-  //       rgb[2] = Math.abs(rgb[2] / frameSize);
-  //       return rgb;
-  //   }
-   //
-  //   /**
-  //   * Get HSL (Hue, Saturation, Luma) from RGB. Note1: H is 0-360 (degrees)
-  //   * Note2: S and L are 0-100 (percent)
-  //   *
-  //   * @param r
-  //   *            Red value.
-  //   * @param g
-  //   *            Green value.
-  //   * @param b
-  //   *            Blue value.
-  //   * @return Integer array representing an HSL pixel.
-  //   */
-  //  public static int[] convertToHSL(int r, int g, int b) {
-  //      float red = r / 262143;
-  //      float green = g / 262143;
-  //      float blue = b / 262143;
-   //
-  //      float minComponent = Math.min(red, Math.min(green, blue));
-  //      float maxComponent = Math.max(red, Math.max(green, blue));
-  //      float range = maxComponent - minComponent;
-  //      float h = 0, s = 0, l = 0;
-   //
-  //      l = (maxComponent + minComponent) / 2;
-   //
-  //      if (range == 0) { // Monochrome image
-  //          h = s = 0;
-  //      } else {
-  //          s = (l > 0.5) ? range / (2 - range) : range / (maxComponent + minComponent);
-   //
-  //          if (red == maxComponent) {
-  //              h = (blue - green) / range;
-  //          } else if (green == maxComponent) {
-  //              h = 2 + (blue - red) / range;
-  //          } else if (blue == maxComponent) {
-  //              h = 4 + (red - green) / range;
-  //          }
-  //      }
-   //
-  //      // convert to 0-360 (degrees)
-  //      h *= 60;
-  //      if (h < 0) h += 360;
-   //
-  //      // convert to 0-100 (percent)
-  //      s *= 100;
-  //      l *= 100;
-   //
-  //      // Since they were converted from float to int
-  //      return (new int[] { (int) h, (int) s, (int) l });
-  //  }
-
     private class HeartBeatAsyncTask extends AsyncTask<Void, Void, Void> {
         private byte[] data;
         private final Camera camera;
@@ -476,9 +367,6 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 int height = size.height;
 
                 int[] hsl = decodeYUV420SPtoLuma(data.clone(), height, width);
-
-                // android.util.Log.i("PreviewColor", "r: " + rgb[0] + " g: " + rgb[1] + " b: " + rgb[2]);
-                // int[] hsl = convertToHSL(rgb[0], rgb[1], rgb[2]);
 
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
