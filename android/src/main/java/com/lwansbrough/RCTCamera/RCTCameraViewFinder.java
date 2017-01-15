@@ -338,8 +338,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         rgb[2] = 0;
 
 
-        for (int y = 0; y < 1; y++) {
-          for (int x = 0; x < 1; x++) {
+        for (int y = 90; y < 91; y++) {
+          for (int x = 90; x < 91; x++) {
               int Y = yuv420sp[y*width + x] & 0xff;
 
               // Get U and V values, stored after Y values, one per 2x2 block
@@ -371,9 +371,9 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
           }
       }
 
-        rgb[0] = rgb[0] / frameSize;
-        rgb[1] = rgb[1] / frameSize;
-        rgb[2] = rgb[2] / frameSize;
+        // rgb[0] = rgb[0] / frameSize;
+        // rgb[1] = rgb[1] / frameSize;
+        // rgb[2] = rgb[2] / frameSize;
         return rgb;
     }
 
