@@ -892,7 +892,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   //   }
   // }
 
-  CVImageBufferRef cvimgRef = CMSampleBufferGetImageBuffer(sampleBuffer);
+  CVImageBufferRef cvimgRef = CMSampleBufferGetImageBuffer(sampleBufferfromConnection);
 
   // Lock the image buffer
   CVPixelBufferLockBaseAddress(cvimgRef,0);
@@ -932,8 +932,8 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   NSDictionary *event = @{
     // @"type": metadata.type,
     @"hue": hue,
-    @"saturation": saturation,
-    @"brightness": brightness,
+    @"saturation": sat,
+    @"brightness": bright,
     // @"bounds": @{
     //   @"origin": @{
     //     @"x": [NSString stringWithFormat:@"%f", transformed.bounds.origin.x],
