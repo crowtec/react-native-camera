@@ -349,10 +349,10 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
               int yby2 = y/2;
 
               // make this V for NV12/420SP
-              float U = (float)(yuv420sp[frameSize + 2*xby2 + yby2*width] & 0xff) - 128.0f;
+              float V = (float)(yuv420sp[frameSize + 2*xby2 + yby2*width] & 0xff) - 128.0f;
 
               // make this U for NV12/420SP
-              float V = (float)(yuv420sp[frameSize + 2*xby2 + 1 + yby2*width] & 0xff) - 128.0f;
+              float U = (float)(yuv420sp[frameSize + 2*xby2 + 1 + yby2*width] & 0xff) - 128.0f;
 
               // Do the YUV -> RGB conversion
               float Yf = 1.164f*((float)Y) - 16.0f;
@@ -451,6 +451,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 int height = size.height;
 
                 int[] rgb = decodeYUV420SPtoRGB(data.clone(), height, width);
+
+                android.util.Log.i("PreviewColor", "r: " + rgb[0] + " g: " + rgb[1] + " b: " + rgb[2]);
                 int[] hsl = convertToHSL(rgb[0], rgb[1], rgb[2]);
 
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
