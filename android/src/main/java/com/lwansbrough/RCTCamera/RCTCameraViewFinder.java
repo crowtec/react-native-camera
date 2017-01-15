@@ -165,7 +165,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                   Camera.Size bestSize = null;
 
                   for (Camera.Size size : supportedPreviewSizes) {
-
+                      android.util.Log.i("SupportedSize", "width: " + size.width + " height: " + size.height);
                       if (bestSize == null) {
                           bestSize = size;
                           continue;
@@ -330,19 +330,19 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     public static int[] decodeYUV420SPtoLuma(byte[] yuv420sp, int width, int height) {
         if (yuv420sp == null) throw new NullPointerException();
 
-        int initx = height <= 300 ? 0 : (height - 300) / 2;
-        int inity = width <= 300 ? 0 : (width - 300) / 2;
+//        int initx = height <= 300 ? 0 : (height - 300) / 2;
+//        int inity = width <= 300 ? 0 : (width - 300) / 2;
         int imageHeight = height <= 300 ? height : 300;
         int imageWidth = width <= 300 ? width : 300;
 
-        android.util.Log.i("PreviewValues", "j: " + initx+ " i: " + inity);
+//        android.util.Log.i("PreviewValues", "j: " + initx+ " i: " + inity);
 
         final int frameSize = imageWidth * imageHeight;
         int[] hsl = new int[frameSize];
 
 
-        for (int j = initx, yp = 0; j < imageHeight; j++) {
-            for (int i = inity; i < imageWidth; i++, yp++) {
+        for (int j = 0, yp = 0; j < imageHeight; j++) {
+            for (int i = 0; i < imageWidth; i++, yp++) {
                 int y = (0xff & (yuv420sp[yp])) - 16;
                 if (y < 0) y = 0;
                 hsl[yp] = y;
