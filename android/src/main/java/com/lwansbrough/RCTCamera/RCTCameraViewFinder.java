@@ -160,6 +160,29 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
                 if(RCTCamera.getInstance().isPreviewModeEnabled()){
                   parameters.setFlashMode(Camera.Parameters.FLASH_MODE_TORCH);
+
+                  List<Camera.Size> supportedPreviewSizes = parameters.getSupportedPreviewSizes();
+                  Camera.Size bestSize = null;
+
+                  for (Camera.Size size : supportedPreviewSizes) {
+
+                      if (bestSize == null) {
+                          bestSize = size;
+                          continue;
+                      }
+
+                      int resultArea = bestSize.width * bestSize.height;
+                      int newArea = size.width * size.height;
+
+                      if (newArea < resultArea) {
+                          bestSize = size;
+                      }
+                  }
+
+                  parameters.setPreviewSize(bestSize.width, bestSize.height);
+                  parameters.setPreviewFpsRange(30000, 30000);
+
+                  android.util.Log.i("PreviewSize", "width: " + bestSize.width + " height: " + bestSize.height);
                 }
 
                 _camera.setParameters(parameters);
@@ -309,32 +332,48 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         if (yuv420sp == null) throw new NullPointerException();
 
         final int frameSize = width * height;
-        int[] rgb = new int[frameSize];
+        int[] rgb = new int[3];
+        rgb[0] = 0;
+        rgb[1] = 0;
+        rgb[2] = 0;
 
-        for (int j = 0, yp = 0; j < height; j++) {
-            int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-            for (int i = 0; i < width; i++, yp++) {
-                int y = (0xff & (yuv420sp[yp])) - 16;
-                if (y < 0) y = 0;
-                if ((i & 1) == 0) {
-                    v = (0xff & yuv420sp[uvp++]) - 128;
-                    u = (0xff & yuv420sp[uvp++]) - 128;
-                }
-                int y1192 = 1192 * y;
-                int r = (y1192 + 1634 * v);
-                int g = (y1192 - 833 * v - 400 * u);
-                int b = (y1192 + 2066 * u);
 
-                if (r < 0) r = 0;
-                else if (r > 262143) r = 262143;
-                if (g < 0) g = 0;
-                else if (g > 262143) g = 262143;
-                if (b < 0) b = 0;
-                else if (b > 262143) b = 262143;
+        for (int y = 0; y < height; y++) {
+          for (int x = 0; x < width; x++) {
+              int Y = yuv420sp[y*width + x] & 0xff;
 
-                rgb[yp] = 0xff000000 | ((r << 6) & 0xff0000) | ((g >> 2) & 0xff00) | ((b >> 10) & 0xff);
-            }
-        }
+              // Get U and V values, stored after Y values, one per 2x2 block
+              // of pixels, interleaved. Prepare them as floats with correct range
+              // ready for calculation later.
+              int xby2 = x/2;
+              int yby2 = y/2;
+
+              // make this V for NV12/420SP
+              float U = (float)(yuv420sp[frameSize + 2*xby2 + yby2*width] & 0xff) - 128.0f;
+
+              // make this U for NV12/420SP
+              float V = (float)(yuv420sp[frameSize + 2*xby2 + 1 + yby2*width] & 0xff) - 128.0f;
+
+              // Do the YUV -> RGB conversion
+              float Yf = 1.164f*((float)Y) - 16.0f;
+              int R = (int)(Yf + 1.596f*V);
+              int G = (int)(Yf - 0.813f*V - 0.391f*U);
+              int B = (int)(Yf            + 2.018f*U);
+
+              // Clip rgb values to 0-255
+              R = R < 0 ? 0 : R > 255 ? 255 : R;
+              G = G < 0 ? 0 : G > 255 ? 255 : G;
+              B = B < 0 ? 0 : B > 255 ? 255 : B;
+
+              rgb[0] += R;
+              rgb[1] += G;
+              rgb[2] += B;
+          }
+      }
+
+        rgb[0] = rgb[0] / frameSize;
+        rgb[1] = rgb[1] / frameSize;
+        rgb[2] = rgb[2] / frameSize;
         return rgb;
     }
 
