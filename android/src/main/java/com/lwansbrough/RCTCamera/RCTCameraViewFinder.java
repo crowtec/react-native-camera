@@ -330,8 +330,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     public static int[] decodeYUV420SPtoLuma(byte[] yuv420sp, int width, int height) {
         if (yuv420sp == null) throw new NullPointerException();
 
-        imageHeight = height <= 200 ? height : 200;
-        imageWidth = width <= 200 ? width : 200;
+        int imageHeight = height <= 200 ? height : 200;
+        int imageWidth = width <= 200 ? width : 200;
 
         final int frameSize = imageWidth * imageHeight;
         int[] hsl = new int[frameSize];
