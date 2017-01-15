@@ -304,10 +304,11 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             new ReaderAsyncTask(camera, data).execute();
         }
 
-        // if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
-        //     RCTCameraViewFinder.previewModeTaskLock = true;
-        //     new PreviewModeReaderAsyncTask(camera, data).execute();
-        // }
+        if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
+            RCTCameraViewFinder.previewModeTaskLock = true;
+            new PreviewModeReaderAsyncTask(camera, data).execute();
+        }
+
         if (RCTCamera.getInstance().isHeartRateModeEnabled()){
             // RCTCameraViewFinder.previewModeTaskLock = true;
             if (data == null) throw new NullPointerException();
@@ -389,7 +390,6 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 // meh
             } finally {
                 _multiFormatReader.reset();
-                RCTCameraViewFinder.previewModeTaskLock = false;
                 return null;
             }
         }
