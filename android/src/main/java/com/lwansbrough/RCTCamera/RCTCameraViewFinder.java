@@ -310,6 +310,14 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         // }
         if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
             // RCTCameraViewFinder.previewModeTaskLock = true;
+            if (data == null) throw new NullPointerException();
+            Camera.Size size = camera.getParameters().getPreviewSize();
+            if (size == null) throw new NullPointerException();
+
+            int width = size.width;
+            int height = size.height;
+
+            int[] hsl = decodeYUV420SPtoLuma(data.clone(), height, width);
             new HeartBeatAsyncTask(camera, data).execute();
         }
     }
@@ -332,8 +340,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
 //        int initx = height <= 300 ? 0 : (height - 300) / 2;
 //        int inity = width <= 300 ? 0 : (width - 300) / 2;
-        int imageHeight = height <= 300 ? height : 300;
-        int imageWidth = width <= 300 ? width : 300;
+        int imageHeight = height;// <= 300 ? height : 300;
+        int imageWidth = width;// <= 300 ? width : 300;
 
 //        android.util.Log.i("PreviewValues", "j: " + initx+ " i: " + inity);
 
@@ -352,10 +360,10 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
     }
 
     private class HeartBeatAsyncTask extends AsyncTask<Void, Void, Void> {
-        private byte[] data;
+        private int[] data;
         private final Camera camera;
 
-        HeartBeatAsyncTask(Camera camera, byte[] data) {
+        HeartBeatAsyncTask(Camera camera, int[] data) {
             this.camera = camera;
             this.data = data;
         }
@@ -367,20 +375,12 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             }
 
             try {
-                if (data == null) throw new NullPointerException();
-                Camera.Size size = camera.getParameters().getPreviewSize();
-                if (size == null) throw new NullPointerException();
-
-                int width = size.width;
-                int height = size.height;
-
-                int[] hsl = decodeYUV420SPtoLuma(data.clone(), height, width);
 
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
-                event.putInt("hue", hsl[0]);
-                event.putInt("saturation", hsl[1]);
-                event.putInt("brightness", hsl[2]);
+                event.putInt("hue", data[0]);
+                event.putInt("saturation", data[1]);
+                event.putInt("brightness", data[2]);
 
                 reactContext.getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class).emit("PreviewFrameReadAndroid", event);
 
