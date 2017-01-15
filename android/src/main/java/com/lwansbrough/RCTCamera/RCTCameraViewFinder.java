@@ -317,8 +317,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             int width = size.width;
             int height = size.height;
 
-            int[] hsl = decodeYUV420SPtoLuma(data.clone(), height, width);
-            
+            int[] hsl = decodeYUV420SPtoLuma(data, height, width);
+
             new HeartBeatAsyncTask(camera, hsl).execute();
         }
     }
