@@ -335,6 +335,8 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         int imageHeight = height <= 300 ? height : 300;
         int imageWidth = width <= 300 ? width : 300;
 
+        android.util.Log.i("PreviewValues", "j: " + initx+ " i: " + inity);
+
         final int frameSize = imageWidth * imageHeight;
         int[] hsl = new int[frameSize];
 
