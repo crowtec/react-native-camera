@@ -287,18 +287,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         // }
         if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
             RCTCameraViewFinder.previewModeTaskLock = true;
-
-            if (data == null) throw new NullPointerException();
-            Camera.Size size = camera.getParameters().getPreviewSize();
-            if (size == null) throw new NullPointerException();
-
-            int width = size.width;
-            int height = size.height;
-
-            int[] rgb = decodeYUV420SPtoRGB(data.clone(), height, width);
-            int[] hsl = convertToHSL(rgb[0], rgb[1], rgb[2]);
-            new HeartBeatAsyncTask(camera, hsl).execute();
-
+            new HeartBeatAsyncTask(camera, data).execute();
         }
     }
 
@@ -400,12 +389,12 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
    }
 
     private class HeartBeatAsyncTask extends AsyncTask<Void, Void, Void> {
-        private int[] hsl;
+        private byte[] data;
         private final Camera camera;
 
-        HeartBeatAsyncTask(Camera camera, int[] hsl) {
+        HeartBeatAsyncTask(Camera camera, byte[] data) {
             this.camera = camera;
-            this.hsl = hsl;
+            this.data = data;
         }
 
         @Override
@@ -415,6 +404,16 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
             }
 
             try {
+                if (data == null) throw new NullPointerException();
+                Camera.Size size = camera.getParameters().getPreviewSize();
+                if (size == null) throw new NullPointerException();
+
+                int width = size.width;
+                int height = size.height;
+
+                int[] rgb = decodeYUV420SPtoRGB(data.clone(), height, width);
+                int[] hsl = convertToHSL(rgb[0], rgb[1], rgb[2]);
+
                 ReactContext reactContext = RCTCameraModule.getReactContextSingleton();
                 WritableMap event = Arguments.createMap();
                 event.putInt("hue", hsl[0]);
