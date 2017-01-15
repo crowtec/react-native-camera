@@ -58,8 +58,8 @@ function convertNativeProps(props) {
     newProps.onPreviewFrameRead = props.onPreviewFrameRead;
   }
 
-  newProps.previewModeEnabled = typeof props.onPreviewFrameRead === 'function'
-  newProps.heartRateModeEnabled = typeof props.onPreviewFrameRead === 'function'
+  newProps.previewModeEnabled = props.previewModeEnabled;
+  newProps.heartRateModeEnabled = props.heartRateModeEnabled;
 
 
   return newProps;
