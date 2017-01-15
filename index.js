@@ -59,6 +59,7 @@ function convertNativeProps(props) {
   }
 
   newProps.previewModeEnabled = typeof props.onPreviewFrameRead === 'function'
+  newProps.heartRateModeEnabled = typeof props.onPreviewFrameRead === 'function'
 
 
   return newProps;
@@ -107,6 +108,7 @@ export default class Camera extends Component {
     onBarCodeRead: PropTypes.func,
     barcodeScannerEnabled: PropTypes.bool,
     previewModeEnabled: PropTypes.bool,
+    heartRateModeEnabled: PropTypes.bool,
     onFocusChanged: PropTypes.func,
     onZoomChanged: PropTypes.func,
     mirrorImage: PropTypes.bool,

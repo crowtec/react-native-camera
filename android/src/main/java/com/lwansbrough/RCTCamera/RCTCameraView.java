@@ -127,6 +127,10 @@ public class RCTCameraView extends ViewGroup {
         RCTCamera.getInstance().setPreviewModeEnabled(previewModeEnabled);
     }
 
+    public void setHeartRateModeEnabled(boolean heartRateModeEnabled) {
+        RCTCamera.getInstance().setHeartRateModeEnabled(heartRateModeEnabled);
+    }
+
     public void setBarCodeTypes(List<String> types) {
         RCTCamera.getInstance().setBarCodeTypes(types);
     }

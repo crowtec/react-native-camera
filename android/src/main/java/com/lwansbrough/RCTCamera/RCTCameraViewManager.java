@@ -80,6 +80,11 @@ public class RCTCameraViewManager extends ViewGroupManager<RCTCameraView> {
         view.setPreviewModeEnabled(previewModeEnabled);
     }
 
+    @ReactProp(name = "heartRateModeEnabled")
+    public void setHeartRateModeEnabled(RCTCameraView view, boolean heartRateModeEnabled) {
+        view.setHeartRateModeEnabled(heartRateModeEnabled);
+    }
+
     @ReactProp(name = "barCodeTypes")
     public void setBarCodeTypes(RCTCameraView view, ReadableArray barCodeTypes) {
         if (barCodeTypes == null) {
