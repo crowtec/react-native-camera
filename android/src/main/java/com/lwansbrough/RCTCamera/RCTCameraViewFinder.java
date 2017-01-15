@@ -158,6 +158,10 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 );
                 parameters.setPictureSize(optimalPictureSize.width, optimalPictureSize.height);
 
+                if(RCTCamera.getInstance().isPreviewModeEnabled()){
+                  parameters.setFlashMode(Parameters.FLASH_MODE_TORCH);
+                }
+
                 _camera.setParameters(parameters);
                 _camera.setPreviewTexture(_surfaceTexture);
                 _camera.startPreview();
@@ -282,7 +286,7 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
         //     new PreviewModeReaderAsyncTask(camera, data).execute();
         // }
         if (RCTCamera.getInstance().isPreviewModeEnabled() && !RCTCameraViewFinder.previewModeTaskLock){
-
+            RCTCameraViewFinder.previewModeTaskLock = true;
 
             if (data == null) throw new NullPointerException();
             Camera.Size size = camera.getParameters().getPreviewSize();
@@ -293,7 +297,6 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
 
             int[] rgb = decodeYUV420SPtoRGB(data.clone(), height, width);
             int[] hsl = convertToHSL(rgb[0], rgb[1], rgb[2]);
-            RCTCameraViewFinder.previewModeTaskLock = true;
             new HeartBeatAsyncTask(camera, hsl).execute();
 
         }
