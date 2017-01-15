@@ -361,15 +361,15 @@ class RCTCameraViewFinder extends TextureView implements TextureView.SurfaceText
                 else if (b > 262143) b = 262143;
 
 
-              rgb[0] += r;
-              rgb[1] += g;
-              rgb[2] += b;
+                rgb[0] += r;
+                rgb[1] += g;
+                rgb[2] += b;
           }
       }
 
-        rgb[0] = rgb[0] / frameSize;
-        rgb[1] = rgb[1] / frameSize;
-        rgb[2] = rgb[2] / frameSize;
+        rgb[0] = Math.abs(rgb[0] / frameSize);
+        rgb[1] = Math.abs(rgb[1] / frameSize);
+        rgb[2] = Math.abs(rgb[2] / frameSize);
         return rgb;
     }
 
