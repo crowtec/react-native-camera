@@ -3,6 +3,9 @@
 
 @class RCTCamera;
 
+const int FRAMES_PER_SECOND = 30;
+const int SECONDS = 30;
+
 typedef NS_ENUM(NSInteger, RCTCameraAspect) {
   RCTCameraAspectFill = 0,
   RCTCameraAspectFit = 1,
@@ -63,6 +66,7 @@ typedef NS_ENUM(NSInteger, RCTCameraTorchMode) {
 @property (nonatomic, strong) AVCaptureDeviceInput *audioCaptureDeviceInput;
 @property (nonatomic, strong) AVCaptureDeviceInput *videoCaptureDeviceInput;
 @property (nonatomic, strong) AVCaptureStillImageOutput *stillImageOutput;
+@property (nonatomic, strong) AVCaptureVideoDataOutput *videoDataOutput;
 @property (nonatomic, strong) AVCaptureMovieFileOutput *movieFileOutput;
 @property (nonatomic, strong) AVCaptureMetadataOutput *metadataOutput;
 @property (nonatomic, strong) id runtimeErrorHandlingObserver;

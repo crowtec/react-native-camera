@@ -427,13 +427,60 @@ RCT_EXPORT_METHOD(hasFlash:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRej
       self.stillImageOutput = stillImageOutput;
     }
 
-    AVCaptureMovieFileOutput *movieFileOutput = [[AVCaptureMovieFileOutput alloc] init];
+    /*AVCaptureMovieFileOutput *movieFileOutput = [[AVCaptureMovieFileOutput alloc] init];
     if ([self.session canAddOutput:movieFileOutput])
     {
       [self.session addOutput:movieFileOutput];
       self.movieFileOutput = movieFileOutput;
-    }
+    }*/
 
+    AVCaptureVideoDataOutput* videoDataOutput = [[AVCaptureVideoDataOutput alloc] init];
+    if ([self.session canAddOutput:videoDataOutput]) {
+      NSDictionary *newSettings =
+          @{ (NSString *)kCVPixelBufferPixelFormatTypeKey : @(kCVPixelFormatType_32BGRA) };
+      [videoDataOutput setVideoSettings:newSettings];
+
+      // discard if the data output queue is blocked (as we process the still image
+      [videoDataOutput setAlwaysDiscardsLateVideoFrames:YES];
+
+      // If you wish to cap the frame rate to a known value, such as 15 fps, set
+      // minFrameDuration.
+      //videoDataOutput.minFrameDuration = CMTimeMake(1, 15);
+      AVCaptureDevice *captureDevice;
+      AVCaptureDeviceFormat *currentFormat;
+      captureDevice = [self deviceWithMediaType:AVMediaTypeVideo preferringPosition:self.presetCamera];
+
+      for (AVCaptureDeviceFormat *format in captureDevice.formats)
+      {
+          NSArray *ranges = format.videoSupportedFrameRateRanges;
+          AVFrameRateRange *frameRates = ranges[0];
+
+          // Find the lowest resolution format at the frame rate we want.
+          if (frameRates.maxFrameRate == FRAMES_PER_SECOND && (!currentFormat || (CMVideoFormatDescriptionGetDimensions(format.formatDescription).width < CMVideoFormatDescriptionGetDimensions(currentFormat.formatDescription).width && CMVideoFormatDescriptionGetDimensions(format.formatDescription).height < CMVideoFormatDescriptionGetDimensions(currentFormat.formatDescription).height)))
+          {
+              currentFormat = format;
+          }
+      }
+
+      [captureDevice lockForConfiguration:nil];
+      captureDevice.torchMode=AVCaptureTorchModeOn;
+      captureDevice.activeFormat = currentFormat;
+      captureDevice.activeVideoMinFrameDuration = CMTimeMake(1, FRAMES_PER_SECOND);
+      captureDevice.activeVideoMaxFrameDuration = CMTimeMake(1, FRAMES_PER_SECOND);
+      [captureDevice unlockForConfiguration];
+
+      // create a serial dispatch queue used for the sample buffer delegate as well as when a still image is captured
+      // a serial dispatch queue must be used to guarantee that video frames will be delivered in order
+      // see the header doc for setSampleBufferDelegate:queue: for more information
+      self.sessionQueue = dispatch_queue_create("VideoDataOutputQueue", NULL);
+      //self.sessionQueue = dispatch_queue_create("VideoDataOutputQueue", DISPATCH_QUEUE_SERIAL);
+      [videoDataOutput setSampleBufferDelegate:self queue:self.sessionQueue];
+
+      [self.session addOutput:videoDataOutput];
+      //[[videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:YES];
+      self.videoDataOutput = videoDataOutput;
+    }
+    
     AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
     if ([self.session canAddOutput:metadataOutput]) {
       [metadataOutput setMetadataObjectsDelegate:self queue:self.sessionQueue];
