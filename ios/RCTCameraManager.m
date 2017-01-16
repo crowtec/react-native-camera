@@ -979,6 +979,9 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   UIColor *color = [UIColor colorWithRed:r green:g blue:b alpha:1.0];
   CGFloat hue, sat, bright;
   [color getHue:&hue saturation:&sat brightness:&bright alpha:nil];
+  hue = (hue * 100) * 360;
+  sat *= 100;
+  bright *= 100;
 
   NSNumber * hu = [NSNumber numberWithFloat:hue];
   NSNumber * sa = [NSNumber numberWithFloat:sat];
