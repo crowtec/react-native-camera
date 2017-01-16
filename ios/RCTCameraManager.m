@@ -11,6 +11,9 @@
 #import <ImageIO/ImageIO.h>
 #import "RCTSensorOrientationChecker.h"
 
+const int FRAMES_PER_SECOND = 30;
+const int SECONDS = 30;
+
 @interface RCTCameraManager ()
 
 @property (strong, nonatomic) RCTSensorOrientationChecker * sensorOrientationChecker;
@@ -480,7 +483,7 @@ RCT_EXPORT_METHOD(hasFlash:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRej
       //[[videoDataOutput connectionWithMediaType:AVMediaTypeVideo] setEnabled:YES];
       self.videoDataOutput = videoDataOutput;
     }
-    
+
     AVCaptureMetadataOutput *metadataOutput = [[AVCaptureMetadataOutput alloc] init];
     if ([self.session canAddOutput:metadataOutput]) {
       [metadataOutput setMetadataObjectsDelegate:self queue:self.sessionQueue];

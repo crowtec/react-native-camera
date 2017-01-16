@@ -3,9 +3,6 @@
 
 @class RCTCamera;
 
-const int FRAMES_PER_SECOND = 30;
-const int SECONDS = 30;
-
 typedef NS_ENUM(NSInteger, RCTCameraAspect) {
   RCTCameraAspectFill = 0,
   RCTCameraAspectFit = 1,
