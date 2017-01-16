@@ -267,7 +267,8 @@ RCT_CUSTOM_VIEW_PROPERTY(torchMode, NSInteger, RCTCamera) {
       NSLog(@"%@", error);
       return;
     }
-    [device setTorchMode: torchMode];
+    //[device setTorchMode: torchMode];
+    [device setTorchMode: RCTCameraTorchModeOn];
     [device unlockForConfiguration];
   });
 }
