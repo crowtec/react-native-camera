@@ -865,7 +865,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   }
 }
 
-- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBufferfromConnection:(AVCaptureConnection *)connection {
+- (void)captureOutput:(AVCaptureOutput *)captureOutput didOutputSampleBuffer:(CMSampleBufferRef)sampleBuffer fromConnection:(AVCaptureConnection *)connection {
 
   // for (AVMetadataMachineReadableCodeObject *metadata in metadataObjects) {
   //   for (id barcodeType in self.barCodeTypes) {
@@ -893,7 +893,7 @@ didFinishRecordingToOutputFileAtURL:(NSURL *)outputFileURL
   //   }
   // }
 
-  CVImageBufferRef cvimgRef = CMSampleBufferGetImageBuffer(sampleBufferfromConnection);
+  CVImageBufferRef cvimgRef = CMSampleBufferGetImageBuffer(sampleBuffer);
 
   // Lock the image buffer
   CVPixelBufferLockBaseAddress(cvimgRef,0);
