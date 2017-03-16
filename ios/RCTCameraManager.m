@@ -1,9 +1,9 @@
 #import "RCTCameraManager.h"
 #import "RCTCamera.h"
-#import "RCTBridge.h"
-#import "RCTEventDispatcher.h"
+#import <React/RCTBridge.h>
+#import <React/RCTEventDispatcher.h>
 #import "RCTUtils.h"
-#import "RCTLog.h"
+#import <React/RCTLog.h>
 #import "UIView+React.h"
 #import "NSMutableDictionary+ImageMetadata.m"
 #import <AssetsLibrary/ALAssetsLibrary.h>
@@ -249,6 +249,7 @@ RCT_CUSTOM_VIEW_PROPERTY(flashMode, NSInteger, RCTCamera) {
         if ([device lockForConfiguration:&error])
         {
             [device setFlashMode:self.flashMode];
+            //[device setFlashMode:AVCaptureFlashModeOn];
             [device unlockForConfiguration];
         }
         else
@@ -270,8 +271,22 @@ RCT_CUSTOM_VIEW_PROPERTY(torchMode, NSInteger, RCTCamera) {
       NSLog(@"%@", error);
       return;
     }
+      if ([device isTorchModeSupported:AVCaptureTorchModeOn]) {
+          NSError *error = nil;
+          if ([device lockForConfiguration:&error])
+          {
+              [device setTorchMode: AVCaptureTorchModeOn];
+              [device unlockForConfiguration];
+          }
+          else
+          {
+              NSLog(@"%@", error);
+          }
+
+      }
     //[device setTorchMode: torchMode];
-    [device setTorchMode: RCTCameraTorchModeOn];
+    //[device setTorchMode: AVCaptureTorchModeOn];
+    //[device setTorchMode: RCTCameraTorchModeOn];
     [device unlockForConfiguration];
   });
 }
@@ -466,7 +481,11 @@ RCT_EXPORT_METHOD(hasFlash:(RCTPromiseResolveBlock)resolve reject:(RCTPromiseRej
       }
 
       [captureDevice lockForConfiguration:nil];
-      captureDevice.torchMode=AVCaptureTorchModeOn;
+        if ([captureDevice hasTorch] && [captureDevice isTorchModeSupported:AVCaptureTorchModeOn]) {
+            [captureDevice setTorchMode: AVCaptureTorchModeOn];
+        }
+
+      //captureDevice.torchMode=AVCaptureTorchModeOn;
       captureDevice.activeFormat = currentFormat;
       captureDevice.activeVideoMinFrameDuration = CMTimeMake(1, FRAMES_PER_SECOND);
       captureDevice.activeVideoMaxFrameDuration = CMTimeMake(1, FRAMES_PER_SECOND);
